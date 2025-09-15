@@ -75,7 +75,7 @@ public enum ErrorCode {
     CONFLICT_NICKNAME(HttpStatus.CONFLICT.value(), 4090201, "사용중인 닉네임입니다."),
     // MyBook(03)
     NOT_FOUND_MY_BOOK(HttpStatus.NOT_FOUND.value(), 4040301,"해당 MyBook을 찾을 수 없습니다."),
-    MY_BOOK_ALREADY_EXISTS(HttpStatus.CONFLICT.value(), 4090302, "이미 책장에 추가된 책입니다."),
+    MY_BOOK_ALREADY_EXISTS(HttpStatus.CONFLICT.value(), 4090302, "이미 가지고 있는 책이에요!"),
 
     // Notice(04)
 
