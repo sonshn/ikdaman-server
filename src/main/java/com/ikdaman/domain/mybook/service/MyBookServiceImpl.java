@@ -80,6 +80,11 @@ public class MyBookServiceImpl implements MyBookService {
                     .build());
         }
 
+        // 한 사용자가 책장에 같은 책을 중복으로 저장할 수 없음
+        if(myBookRepository.existsMyBookByMemberIdAndBook(memberId, book)) {
+            throw new BaseException(MY_BOOK_ALREADY_EXISTS);
+        }
+
         MyBook myBook = MyBook.builder()
                 .memberId(memberId)
                 .book(book)
