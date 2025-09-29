@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -68,13 +69,21 @@ public class MemberServiceImpl implements MemberService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER));
 
-        if(!memberReq.getNickname().equals(member.getNickname()) && !isAvailableNickname(memberReq.getNickname())) {
+        if(
+                memberReq.getNickname() != null
+                && !memberReq.getNickname().equals(member.getNickname())
+                && !isAvailableNickname(memberReq.getNickname())
+        ) {
             throw new BaseException(ErrorCode.CONFLICT_NICKNAME);
         }
 
-        member.updateNickname(memberReq.getNickname());
-        member.updateBirthdate(memberReq.getBirthdate());
-        member.updateGender(memberReq.getGender());
+        member.updateNickname(Optional.ofNullable(memberReq.getNickname()).orElse(member.getNickname()));
+        // birthdate 필드를 null인 채로 보냈다면 갱신하지 않음, 빈 문자열로 보낸다면 null 처리 (빈 문자열은 Deserializer에서 LocalDate.MIN 처리 됨)
+        LocalDate birthDate = Optional.ofNullable(memberReq.getBirthdate()).orElse(member.getBirthdate());
+        member.updateBirthdate((birthDate != LocalDate.MIN) ? birthDate : null);
+        // gender 필드를 null인 채로 보냈다면 갱신 하지 않음, 빈 문자열로 보낸다면 null 처리
+        Member.Gender gender = Optional.ofNullable(memberReq.getGender()).orElse(member.getGender());
+        member.updateGender((gender != Member.Gender.BLANK) ? gender : null);
 
         memberRepository.save(member);
 

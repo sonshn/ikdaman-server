@@ -47,6 +47,8 @@ public class MyBookServiceImpl implements MyBookService {
     private final BookLogRepository bookLogRepository;
     private final MemberRepository memberRepository;
 
+    private final int HOME_DEFAULT_LIMIT = 10;
+
     @Override
     @Transactional
     public MyBookRes addMyBook(UUID memberId, MyBookReq dto) {
@@ -184,6 +186,7 @@ public class MyBookServiceImpl implements MyBookService {
                             .title(book.getTitle())
                             .author(authorNames)
                             .coverImage(book.getCoverImage())
+                            .isCompleted(myBook.getNowPage() == book.getPage())
                             .build();
                 })
                 .toList();
@@ -198,7 +201,8 @@ public class MyBookServiceImpl implements MyBookService {
     @Override
     public InProgressBooksRes searchInProgressBooks(AuthMember authMember) {
         List<MyBook> myBooks = myBookRepository.findAllActiveReadingBooks(
-                authMember.getMember().getMemberId()
+                authMember.getMember().getMemberId(),
+                HOME_DEFAULT_LIMIT
         );
 
         List<InProgressBooksRes.BookDto> bookDtos = myBooks.stream()
@@ -307,8 +311,9 @@ public class MyBookServiceImpl implements MyBookService {
             throw new BaseException(BOOK_NOT_OWNED_BY_MEMBER);
         }
 
-        myBook.updateToInactive();
-        myBookRepository.save(myBook);
+        bookLogRepository.deleteByMyBook(myBook);
+
+        myBookRepository.delete(myBook);
     }
 
     // 책 주인 확인

@@ -59,7 +59,7 @@ public class Member extends BaseTime {
 
     // 성별 ENUM
     public enum Gender {
-        FEMALE, MALE
+        FEMALE, MALE, BLANK
     }
 
     // 소셜 로그인 제공자 ENUM

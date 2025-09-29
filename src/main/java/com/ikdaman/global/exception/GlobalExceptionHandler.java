@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -85,7 +86,25 @@ public class GlobalExceptionHandler {
         ErrorRes errorRes = ErrorRes.builder()
                 .status(BAD_REQUEST_BY_VALIDATION.getStatus())
                 .code(String.valueOf(BAD_REQUEST_BY_VALIDATION.getCode()))
-                .message(ex.getMessage())
+                .message(ex.getMessage().split(": ")[1])
+                .build();
+
+        return new ResponseEntity<>(errorRes, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Valid 관련 예외(MethodArgumentNotValidException) 처리 핸들러
+     *
+     * @param ex MethodArgumentNotValidException
+     * @return 에러 응답(ResponseEntity<ErrorDto>)
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorRes> handleException(MethodArgumentNotValidException ex) {
+        log.error(ex.getMessage(), ex);
+        ErrorRes errorRes = ErrorRes.builder()
+                .status(BAD_REQUEST_BY_VALIDATION.getStatus())
+                .code(String.valueOf(BAD_REQUEST_BY_VALIDATION.getCode()))
+                .message(ex.getBindingResult().getFieldError().getDefaultMessage())
                 .build();
 
         return new ResponseEntity<>(errorRes, HttpStatus.BAD_REQUEST);

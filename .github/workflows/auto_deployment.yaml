@@ -28,20 +28,18 @@ jobs:
     steps:
     # ssh로 EC2 접속
     - name: Connect EC2 by SSH
-      uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
+      uses: appleboy/ssh-action@v1
       with:
         host: ${{ secrets.SSH_HOST }}
-        user: ${{ secrets.SSH_USER }}
+        username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_KEY }}
-        first_ssh: |
+        script: |
           ${{ secrets.AUTHORIZATION }}
-          lsof -t -i:${{ secrets.APPLICATION_PORT }} | xargs -r kill && cd ${{ secrets.PROJECT_PATH }}
+          lsof -t -i:${{ secrets.APPLICATION_PORT }} | xargs -r kill && cd ${{ secrets.PROJECT_PATH }} || true
           git fetch && git pull
           git submodule update --remote --merge
           cp -r -f ./server-private/src/* ./src/
           ./gradlew clean build -x test
           rm -f nohup.out
-          nohup java -jar ${{ secrets.APPLICATION_PATH }} > nohup.out 2>&1 & \
-          sleep 5
-          ps -ef | grep java
-          echo "Deployment completed successfully"
+          { nohup java -jar ${{ secrets.APPLICATION_PATH }} > nohup.out 2>&1 & }
+          sleep 5 && exit 0

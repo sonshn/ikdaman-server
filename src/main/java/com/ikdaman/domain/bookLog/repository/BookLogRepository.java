@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface BookLogRepository extends JpaRepository<BookLog, Long> {
     Optional<BookLog> findFirstByMyBookAndBooklogType(MyBook myBook, String booklogType);
     Page<BookLog> findByMyBook_MybookId(Long mybookId, Pageable pageable);
+    void deleteByMyBook(MyBook myBook);
 }
