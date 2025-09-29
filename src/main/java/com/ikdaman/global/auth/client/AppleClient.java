@@ -1,6 +1,7 @@
 package com.ikdaman.global.auth.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ikdaman.global.auth.enumerate.Provider;
 import com.ikdaman.global.exception.BaseException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -25,7 +26,7 @@ import static com.ikdaman.global.exception.ErrorCode.INVALID_SOCIAL_ACCESS_TOKEN
 
 @Component
 @RequiredArgsConstructor
-public class ClientApple {
+public class AppleClient implements SocialTokenClient {
 
     @Value("${auth.apple.client-id}")
     private String clientId;
@@ -126,6 +127,16 @@ public class ClientApple {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    @Override
+    public Provider provider() {
+        return Provider.APPLE;
+    }
+
+    @Override
+    public String extractProviderId(String token) {
+        return this.getUserDataByIdToken(token);
     }
 
     // Apple Keys Response DTO
