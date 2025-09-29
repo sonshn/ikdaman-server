@@ -69,7 +69,7 @@ public class NoticeServiceImpl implements NoticeService {
                 noticeDTOs,
                 noticePage.hasNext(),
                 noticePage.getNumber() + 1,
-                noticePage.getTotalPages() + 1
+                noticePage.getTotalPages()
         );
     }
 

@@ -8,8 +8,6 @@ import lombok.RequiredArgsConstructor;
 import com.ikdaman.global.auth.model.AuthMember;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
-import java.util.UUID;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -61,6 +59,11 @@ public class MyBookController {
         request.setKeyword(keyword);
         request.setPage(page);
         request.setLimit(limit);
+
+        // 임시 인증 방식 - 하진 로컬 테스트용
+        // Member member = new Member(UUID.fromString("ce03e8b7-df8e-48f4-a8fa-7ed27a3fcc96"), "test", null, null, null, null, null);
+        // AuthMember authMember = new AuthMember(member);
+
         return myBookService.searchMyBooks(request, authMember);
     }
 

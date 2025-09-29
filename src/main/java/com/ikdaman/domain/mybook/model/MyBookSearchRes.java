@@ -22,5 +22,6 @@ public class MyBookSearchRes {
         private String title;
         private String author;
         private String coverImage;
+        private Boolean isCompleted;
     }
 }

@@ -5,6 +5,7 @@ import com.ikdaman.domain.member.model.MemberReq;
 import com.ikdaman.domain.member.model.MemberRes;
 import com.ikdaman.domain.member.service.MemberService;
 import com.ikdaman.global.auth.model.AuthMember;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -51,7 +52,7 @@ public class MemberController {
     // 내 정보 수정
     @PutMapping("/me")
     public ResponseEntity editMyInfo(@AuthenticationPrincipal AuthMember authMember,
-                                     @RequestBody MemberReq memberReq) {
+                                     @RequestBody @Valid MemberReq memberReq) {
         MemberRes result = memberService.editMember(authMember.getMember().getMemberId(), memberReq);
         return ResponseEntity.ok(result);
     }
