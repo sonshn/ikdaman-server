@@ -3,9 +3,8 @@ package com.ikdaman.domain.auth.controller;
 import com.ikdaman.domain.auth.model.AuthReq;
 import com.ikdaman.domain.auth.model.AuthRes;
 import com.ikdaman.domain.auth.service.AuthService;
-import com.ikdaman.domain.auth.service.OAuthService;
+import com.ikdaman.domain.auth.service.SocialAuthService;
 import com.ikdaman.global.auth.model.Tokens;
-import com.ikdaman.global.exception.BaseException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -13,17 +12,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.UUID;
-
-import static com.ikdaman.global.exception.ErrorCode.INVALID_SOCIAL_PROVIDER;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final Map<String, OAuthService> socialLoginServices;
+    private final SocialAuthService socialAuthService;
     private final AuthService authService;
 
     /**
@@ -36,13 +32,7 @@ public class AuthController {
     public ResponseEntity<AuthRes> socialLogin(@RequestBody AuthReq dto,
                                                @RequestHeader("social-token") String socialToken) {
 
-        String provider = dto.getProvider().toLowerCase();
-        OAuthService oAuthService = socialLoginServices.get(provider);
-        if (oAuthService == null) {
-            throw new BaseException(INVALID_SOCIAL_PROVIDER);
-        }
-
-        AuthRes res = oAuthService.login(dto, socialToken);
+        AuthRes res = socialAuthService.login(dto, socialToken);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", res.getAccessToekn());

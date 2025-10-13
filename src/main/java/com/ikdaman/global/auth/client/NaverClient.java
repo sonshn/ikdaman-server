@@ -1,5 +1,6 @@
 package com.ikdaman.global.auth.client;
 
+import com.ikdaman.global.auth.enumerate.Provider;
 import com.ikdaman.global.auth.payload.NaverUserRes;
 import com.ikdaman.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
@@ -12,11 +13,10 @@ import static com.ikdaman.global.exception.ErrorCode.NAVER_SERVER_ERROR;
 
 @Component
 @RequiredArgsConstructor
-public class ClientNaver {
+public class NaverClient implements SocialTokenClient {
 
     private final WebClient webClient;
 
-    // TODO: HttpHeaders.AUTHORIZATION 사용하도록 변경
     public String getUserData(String accessToken) {
         NaverUserRes userRes = webClient.get()
                 .uri("https://openapi.naver.com/v1/nid/me") // Naver의 유저 정보 받아오는 url
@@ -32,5 +32,15 @@ public class ClientNaver {
                 .block();
 
         return userRes.getResponse().getId();
+    }
+
+    @Override
+    public Provider provider() {
+        return Provider.NAVER;
+    }
+
+    @Override
+    public String extractProviderId(String token) {
+        return this.getUserData(token);
     }
 }

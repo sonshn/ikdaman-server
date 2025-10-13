@@ -4,6 +4,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+import com.ikdaman.global.auth.enumerate.Provider;
 import com.ikdaman.global.auth.payload.OAuthUserRes;
 import com.ikdaman.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Arrays;
 
 import static com.ikdaman.global.exception.ErrorCode.GOOGLE_SERVER_ERROR;
@@ -19,7 +22,7 @@ import static com.ikdaman.global.exception.ErrorCode.INVALID_SOCIAL_ACCESS_TOKEN
 
 @Component
 @RequiredArgsConstructor
-public class ClientGoogle {
+public class GoogleClient implements SocialTokenClient {
 
     @Value("${auth.google.client-id.android}")
     private String androidClientId;
@@ -64,28 +67,43 @@ public class ClientGoogle {
      * @param idToken Google idToken
      * @return 사용자 Google 계정의 providerId
      */
-    public String getUserDataByIdToken(String idToken) throws Exception {
+    public String getUserDataByIdToken(String idToken) {
+        try {
+            // GoogleIdTokenVerifier를 생성: Google의 공개키로 idToken의 서명을 검증
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                    GoogleNetHttpTransport.newTrustedTransport(),
+                    GsonFactory.getDefaultInstance()
+            )
+                    // idToken의 Audience 설정: 웹, Android, iOS client ID를 모두 허용
+                    .setAudience(Arrays.asList(
+                            webClientId,
+                            androidClientId,
+                            iosClientId
+                    ))
+                    .build();
 
-        // GoogleIdTokenVerifier를 생성: Google의 공개키로 idToken의 서명을 검증
-        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
-                GoogleNetHttpTransport.newTrustedTransport(),
-                GsonFactory.getDefaultInstance()
-        )
-                // idToken의 Audience 설정: 웹, Android, iOS client ID를 모두 허용
-                .setAudience(Arrays.asList(
-                        webClientId,
-                        androidClientId,
-                        iosClientId
-                ))
-                .build();
+            GoogleIdToken googleIdToken = verifier.verify(idToken);
+            if (googleIdToken == null) {
+                throw new BaseException(INVALID_SOCIAL_ACCESS_TOKEN);
+            }
 
-        GoogleIdToken googleIdToken = verifier.verify(idToken);
-        if (googleIdToken == null) {
-            throw new BaseException(INVALID_SOCIAL_ACCESS_TOKEN);
+            // Payload에서 Google의 "sub" (providerId) 추출
+            GoogleIdToken.Payload payload = googleIdToken.getPayload();
+            return payload.getSubject();
+        } catch (GeneralSecurityException e) {
+            throw new BaseException(GOOGLE_SERVER_ERROR);
+        } catch (IOException e) {
+            throw new BaseException(GOOGLE_SERVER_ERROR);
         }
+    }
 
-        // Payload에서 Google의 "sub" (providerId) 추출
-        GoogleIdToken.Payload payload = googleIdToken.getPayload();
-        return payload.getSubject();
+    @Override
+    public Provider provider() {
+        return Provider.GOOGLE;
+    }
+
+    @Override
+    public String extractProviderId(String token) {
+        return this.getUserDataByIdToken(token);
     }
 }
